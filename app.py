@@ -1,7 +1,6 @@
 from flask import Flask, render_template_string, send_file, request
 from parser import parse_page, parse_article_page
 import os
-import requests
 
 app = Flask(__name__)
 
@@ -105,7 +104,7 @@ HTML_TEMPLATE = """
                         const a = document.createElement('a');
                         a.href = "#";
                         a.textContent = item.text;
-                        a.onclick = () => downloadArticle(item.href);
+                        a.onclick = () => downloadArticle(h2Select.value, h3Select.value, item.text, item.href);
                         li.appendChild(a);
                         ulList.appendChild(li);
                     });
@@ -120,13 +119,13 @@ HTML_TEMPLATE = """
             }
         }
 
-        async function downloadArticle(url) {
-            const response = await fetch(`/download?url=${encodeURIComponent(url)}`);
+        async function downloadArticle(h2, h3, liText, url) {
+            const response = await fetch(`/download?h2=${encodeURIComponent(h2)}&h3=${encodeURIComponent(h3)}&li=${encodeURIComponent(liText)}&url=${encodeURIComponent(url)}`);
             if (response.ok) {
                 const blob = await response.blob();
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = 'article.txt';
+                link.download = `${h2}. ${h3}. ${liText}.txt`;
                 link.click();
             } else {
                 alert('Ошибка при загрузке статьи');
@@ -144,10 +143,13 @@ def index():
 
 @app.route('/download')
 def download():
+    h2 = request.args.get('h2')
+    h3 = request.args.get('h3')
+    li_text = request.args.get('li')
     url = request.args.get('url')
+
     articles = parse_article_page(url)
     if not articles:
-
         return "Не удалось получить данные", 404
 
     # Формируем текстовый файл
@@ -159,10 +161,11 @@ def download():
         text += "=" * 50 + "\n\n"
 
     # Сохраняем в временный файл
-    with open('article.txt', 'w', encoding='utf-8') as f:
+    filename = f"{h2}. {h3}. {li_text}.txt"
+    with open(filename, 'w', encoding='utf-8') as f:
         f.write(text)
 
-    return send_file('article.txt', as_attachment=True)
+    return send_file(filename, as_attachment=True)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    app.run(debug=True)

@@ -20,8 +20,8 @@ def parse_article_page(url):
         link = p.find('a')
         if strong and link:
             author = strong.text.strip()
-            title = link.text.strip()
-            href = link['href']
+            title = link.text.replace(strong.text, '').strip()  # Убираем текст из <strong>
+            href = f"https://esj.today/{link['href']}"  # Форматируем ссылку
             articles.append({
                 'author': author,
                 'title': title,
