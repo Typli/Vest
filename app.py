@@ -110,9 +110,10 @@ HTML_TEMPLATE = """
                     });
                 } else {
                     // Если нет <ul>, отображаем ссылку из <h3>
-                    h3Link.href = h3Data.link;
+                    h3Link.href = "#";
                     h3Link.textContent = `Перейти к выпуску: ${h3Select.value}`;
                     h3Link.style.display = 'block';
+                    h3Link.onclick = () => downloadArticle(h2Select.value, h3Select.value, h3Select.value, h3Data.link);
                 }
             } else {
                 contentSection.style.display = 'none';
